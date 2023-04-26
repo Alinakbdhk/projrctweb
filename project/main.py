@@ -3,11 +3,11 @@ import datetime
 
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 
-from project.data import db_session
-from project.data.users import User
-from project.data.jobs import Jobs
-from project.forms.user_forms import RegisterForm, LoginForm
-from project.forms.job_forms import JobForm
+from data import db_session
+from data.users import User
+from data.books import Books
+from forms.user_forms import RegisterForm, LoginForm
+from forms.book_forms import BookForm
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
@@ -25,8 +25,8 @@ def load_user(user_id):
 @app.route('/index')
 def index():
     db_sess = db_session.create_session()
-    jobs = db_sess.query(Jobs).all()
-    return render_template('index.html', jobs=jobs)
+    books = db_sess.query(Books).all()
+    return render_template('index.html', books=books)
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -71,18 +71,18 @@ def logout():
     return redirect("/")
 
 
-@app.route('/jobs',  methods=['GET', 'POST'])
+@app.route('/books',  methods=['GET', 'POST'])
 @login_required
-def add_jobs():
-    form = JobForm()
+def add_books():
+    form = BookForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        job = Jobs()
+        book = Books()
         for field in form:
-            if hasattr(job, field.name):
-                setattr(job, field.name, field.data)
-        job.team_leader = current_user.id
-        db_sess.add(job)
+            if hasattr(book, field.name):
+                setattr(book, field.name, field.data)
+        book.team_leader = current_user.id
+        db_sess.add(book)
         db_sess.commit()
         return redirect('/')
     if not form.start_date.data:
@@ -93,46 +93,46 @@ def add_jobs():
                            form=form)
 
 
-@app.route('/jobs/<int:id>', methods=['GET', 'POST'])
+@app.route('/books/<int:id>', methods=['GET', 'POST'])
 @login_required
-def edit_jobs(id):
+def edit_books(id):
     db_sess = db_session.create_session()
-    job = db_sess.query(Jobs).filter(Jobs.id == id)
+    book = db_sess.query(Books).filter(Books.id == id)
     if current_user.id == 1:
-        job = job.first()
+        book = book.first()
     else:
-        job = job.filter(Jobs.team_leader_user == current_user).first()
-    if not job:
+        book = book.filter(Books.team_leader_user == current_user).first()
+    if not book:
         abort(404)
-    form = JobForm()
+    form = BookForm()
     if request.method == "GET":
-        if job:
+        if book:
             for field in form:
-                if hasattr(job, field.name):
-                    field.data = getattr(job, field.name)
+                if hasattr(book, field.name):
+                    field.data = getattr(book, field.name)
     if form.validate_on_submit():
         for field in form:
-            if hasattr(job, field.name):
-                setattr(job, field.name, field.data)
+            if hasattr(book, field.name):
+                setattr(book, field.name, field.data)
         db_sess.commit()
         return redirect('/')
     return render_template('work.html',
-                           title='Edit job',
+                           title='Edit book',
                            form=form
                            )
 
 
-@app.route('/jobs_delete/<int:id>', methods=['GET', 'POST'])
+@app.route('/books_delete/<int:id>', methods=['GET', 'POST'])
 @login_required
 def news_delete(id):
     db_sess = db_session.create_session()
-    job = db_sess.query(Jobs).filter(Jobs.id == id)
+    book = db_sess.query(Books).filter(Books.id == id)
     if current_user.id == 1:
-        job = job.first()
+        book = book.first()
     else:
-        job = job.filter(Jobs.team_leader_user == current_user).first()
-    if job:
-        db_sess.delete(job)
+        book = book.filter(Books.team_leader_user == current_user).first()
+    if book:
+        db_sess.delete(book)
         db_sess.commit()
     else:
         abort(404)
@@ -140,7 +140,7 @@ def news_delete(id):
 
 
 def main():
-    db_session.global_init("project/db/db.db")
+    db_session.global_init("db/db.db")
     app.run(host='0.0.0.0', port=8080, debug=True)
 
 
