@@ -1,9 +1,0 @@
-sqlalchemy
-datetime
-wtforms
-flask-wtf
-flask
-flask-login
-sys
-requests
-PyQt5
